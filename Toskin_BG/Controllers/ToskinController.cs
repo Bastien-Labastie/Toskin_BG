@@ -51,10 +51,19 @@ namespace Toskin_BG.Controllers
 
             var filter = Builders<Character>.Filter.Eq("Character_Name", charc.Character_Name);
             var update = Builders<Character>.Update.Set("Character_Name", charc.Character_Name)
-                                                   .Set("Character_class", charc.Character_Class)
                                                    .Set("Init_Bonus", charc.Init_Bonus)
                                                    .Set("Fate_Points", charc.Fate_Points)
-                                                   .Set("Photo_File_Name", charc.Photo_File_Name);
+                                                   .Set("Photo_File_Name", charc.Photo_File_Name)
+                                                   .Set("Initiative", charc.Initiative)
+                                                   .Set("AT", charc.AT)
+                                                   .Set("Bleeding", charc.Bleeding)
+                                                   .Set("DB", charc.DB)
+                                                   .Set("Level", charc.Level)
+                                                   .Set("Base_HP", charc.Base_HP)
+                                                   .Set("Current_HP", charc.Current_HP)
+                                                   .Set("Current_SP", charc.Current_SP)
+                                                   .Set("Max_SP", charc.Max_SP)
+                                                   .Set("Group", charc.Group);
 
             dbclient.GetDatabase("Toskin").GetCollection<Character>("Characters").UpdateOne(filter, update);
 
@@ -97,5 +106,28 @@ namespace Toskin_BG.Controllers
             }
         }
 
+        [HttpPut("{Character_Name}")]
+        public JsonResult Damage(string Character_Name, int damaged, Character charc)
+        {
+            MongoClient dbclient = new MongoClient(_configuration.GetConnectionString("Conn_String"));
+            var dbList = dbclient.GetDatabase("Toskin").GetCollection<Character>("Characters").AsQueryable();
+            var curr_char = charc;
+            damaged = 15;
+
+            foreach (Character charac in dbList)
+            {
+                if (charac.Character_Name == Character_Name)
+                {
+                    curr_char = charac;
+                }
+            }
+
+                var filter = Builders<Character>.Filter.Eq("Character_Name", Character_Name);
+            var update = Builders<Character>.Update.Set("Current_HP", (curr_char.Current_HP - damaged));
+
+            dbclient.GetDatabase("Toskin").GetCollection<Character>("Characters").UpdateOne(filter, update);
+
+            return new JsonResult(curr_char.Character_Name + " took " + damaged.ToString() + " points of damage");
+        }
     }
 }
